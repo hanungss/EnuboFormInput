@@ -70,13 +70,21 @@ def parse_tanggal(val):
     try:
         if isinstance(val, pd.Timestamp):
             return val.strftime("%Y-%m-%d")
-        elif isinstance(val, float) or isinstance(val, int):
+        elif isinstance(val, (float, int)):
             date = pd.to_datetime("1899-12-30") + pd.to_timedelta(int(val), unit="D")
             return date.strftime("%Y-%m-%d")
         elif isinstance(val, str):
-            return pd.to_datetime(val, dayfirst=True, errors="coerce").strftime("%Y-%m-%d")
-    except:
-        return ""
+            for fmt in ("%Y/%m/%d", "%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+                try:
+                    dt = datetime.strptime(val.strip(), fmt)
+                    return dt.strftime("%Y-%m-%d")
+                except:
+                    continue
+            dt = pd.to_datetime(val, errors="coerce", dayfirst=True)
+            if pd.notnull(dt):
+                return dt.strftime("%Y-%m-%d")
+    except Exception as e:
+        print(f"[!] Gagal parse tanggal '{val}': {e}")
     return ""
 
 # ==================== LOG ====================
@@ -95,7 +103,7 @@ wait = WebDriverWait(driver, 10)
 df = pd.read_excel("anggota.xlsx")
 open("log_submit.txt", "w").close()
 
-# ==================== PROSES ====================
+# ==================== LOOP ====================
 
 for index, row in df.iterrows():
     driver.get("https://enubo.nuboyolali.or.id/keanggotaan/daftar/N")

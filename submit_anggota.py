@@ -7,7 +7,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# ==================== MAPPING ====================
 jenis_kelamin_map = {"Laki-laki": "L", "Perempuan": "P"}
 mondok_map = {"Belum Pernah": "N", "Pernah": "A"}
 bersedia_text = ["Bersedia", "Tidak Bersedia"]
@@ -36,7 +35,6 @@ kelurahan_map = {
     "Keposong": 3309040010
 }
 
-# ==================== NORMALISASI ====================
 def norm_kelamin(val):
     return jenis_kelamin_map.get(str(val).strip(), "")
 
@@ -60,35 +58,25 @@ def norm_bersedia(val):
 
 def parse_tanggal(val):
     try:
-        print(f"[DEBUG] Nilai mentah tanggal: {val}")
         if isinstance(val, pd.Timestamp):
-            hasil = val.strftime("%Y-%m-%d")
-            print(f"[DEBUG] Dari Timestamp: {hasil}")
-            return hasil
+            return val.strftime("%Y-%m-%d")
         elif isinstance(val, (float, int)):
             date = pd.to_datetime("1899-12-30") + pd.to_timedelta(int(val), unit="D")
-            hasil = date.strftime("%Y-%m-%d")
-            print(f"[DEBUG] Dari serial Excel: {hasil}")
-            return hasil
+            return date.strftime("%Y-%m-%d")
         elif isinstance(val, str):
             for fmt in ("%Y/%m/%d", "%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
                 try:
                     dt = datetime.strptime(val.strip(), fmt)
-                    hasil = dt.strftime("%Y-%m-%d")
-                    print(f"[DEBUG] Dari string {fmt}: {hasil}")
-                    return hasil
+                    return dt.strftime("%Y-%m-%d")
                 except:
                     continue
             dt = pd.to_datetime(val, errors="coerce", dayfirst=True)
             if pd.notnull(dt):
-                hasil = dt.strftime("%Y-%m-%d")
-                print(f"[DEBUG] Dari fallback pd.to_datetime: {hasil}")
-                return hasil
-    except Exception as e:
-        print(f"[!] Gagal parse tanggal '{val}': {e}")
+                return dt.strftime("%Y-%m-%d")
+    except:
+        return ""
     return ""
 
-# ==================== SETUP ====================
 options = Options()
 options.headless = True
 options.add_argument('--window-size=1920,1080')
@@ -101,7 +89,6 @@ def log_to_file(text):
     with open("log_submit.txt", "a", encoding="utf-8") as f:
         f.write(text + "\n")
 
-# ==================== FORM HANDLING ====================
 def safe_send(name, value):
     try:
         input_el = wait.until(EC.presence_of_element_located((By.NAME, name)))
@@ -110,12 +97,10 @@ def safe_send(name, value):
             if name == "tgl_register":
                 driver.execute_script("arguments[0].value = arguments[1]", input_el, str(value))
                 driver.execute_script("arguments[0].dispatchEvent(new Event('change'))", input_el)
-                print(f"[DEBUG] Set 'tgl_register' dengan JS: {value}")
             else:
                 input_el.send_keys(str(value))
-    except Exception as e:
+    except:
         log_to_file(f"[!] Gagal isi field: {name}")
-        print(f"[!] Gagal isi field: {name} ({e})")
 
 def safe_select(name, value, by_text=False):
     try:
@@ -128,9 +113,7 @@ def safe_select(name, value, by_text=False):
                 select_obj.select_by_value(str(value))
     except:
         log_to_file(f"[!] Gagal pilih option di: {name} = {value}")
-        print(f"[!] Gagal pilih option di: {name} = {value}")
 
-# ==================== LOOP ====================
 for index, row in df.iterrows():
     try:
         driver.get("https://enubo.nuboyolali.or.id/keanggotaan/daftar/N")
@@ -156,13 +139,9 @@ for index, row in df.iterrows():
                 ))
                 safe_select("kelurahan", str(kode_kel))
             except:
-                msg = f"[!] Kelurahan dengan value '{kode_kel}' tidak tersedia di dropdown."
-                log_to_file(msg)
-                print(msg)
+                log_to_file(f"[!] Kelurahan dengan value '{kode_kel}' tidak tersedia.")
         else:
-            msg = f"[!] Kelurahan '{row['kelurahan']}' tidak ditemukan di kelurahan_map"
-            log_to_file(msg)
-            print(msg)
+            log_to_file(f"[!] Kelurahan '{row['kelurahan']}' tidak ditemukan di map")
 
         safe_send("rt", row["rt"])
         safe_send("rw", row["rw"])
@@ -186,7 +165,6 @@ for index, row in df.iterrows():
         print(msg)
         log_to_file(msg)
 
-# ==================== SELESAI ====================
 driver.quit()
 log_to_file("\n🎉 Semua data sudah diproses. Selesai!\n")
 print("\n🎉 Semua data sudah diproses. Selesai!\n")

@@ -1,6 +1,8 @@
 # Enubo Form Automation Bot
 
 Bot ini digunakan untuk **mengisi form pendaftaran keanggotaan NU Boyolali** secara otomatis dari file Excel. Bot dibuat menggunakan Python + Selenium, dan mendukung pemrosesan massal data dengan hasil log.
+![Form Screenshot](Screenshoot/screenshoot.png)
+
 
 ---
 

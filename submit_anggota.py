@@ -87,6 +87,19 @@ def parse_tanggal(val):
         print(f"[!] Gagal parse tanggal '{val}': {e}")
     return ""
 
+def parse_hp(val):
+    try:
+        val_str = str(val).strip().replace(".0", "")
+        if val_str.startswith("0"):
+            return val_str
+        elif val_str.startswith("8") and len(val_str) == 10:
+            return "0" + val_str
+        elif val_str.isnumeric():
+            return val_str.zfill(11)
+        return val_str
+    except:
+        return ""
+
 # ==================== LOG ====================
 
 def log_to_file(text):
@@ -136,7 +149,7 @@ for index, row in df.iterrows():
         safe_send("nik", row["nik"])
         safe_select("jenis_kelamin", norm_kelamin(row["jenis_kelamin"]))
         safe_send("tgl_register", parse_tanggal(row["tgl_register"]))
-        safe_send("hp", row["hp"])
+        safe_send("hp", parse_hp(row["hp"]))
         safe_select("pekerjaan", norm_pekerjaan(row["pekerjaan"]))
         safe_select("mondok", norm_mondok(row["mondok"]))
         safe_send("email", row["email"])

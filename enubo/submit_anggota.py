@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
+import tempfile
+
 
 jenis_kelamin_map = {"Laki-laki": "L", "Perempuan": "P"}
 mondok_map = {"Belum Pernah": "N", "Pernah": "A"}
@@ -113,8 +115,19 @@ def run_bot(file_path):
             log_to_file(f"[!] Gagal pilih option di: {name} = {value}")
 
     options = Options()
-    options.headless = True
+    #options.headless = True
+    #options.add_argument('--window-size=1920,1080')
+    #options.add_argument('--window-size=1920,1080')
+    #options.add_argument('--no-sandbox')
+    #options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--headless=new')  # Lebih stabil di versi Chromium terbaru
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--window-size=1920,1080')
+
+    # Gunakan user-data-dir unik agar tidak konflik
+    temp_profile = tempfile.mkdtemp()
+    options.add_argument(f'--user-data-dir={temp_profile}')
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 10)
 

@@ -1,0 +1,5 @@
+[✓] Baris ke-1 (Maaf mas tak coba buat parsing dari excel) berhasil disubmit.
+[✓] Baris ke-2 (Maaf mas tak coba buat parsing dari excel) berhasil disubmit.
+
+🎉 Semua data sudah diproses. Selesai!
+
